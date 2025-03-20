@@ -63,6 +63,7 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         .delete-btn {
@@ -82,18 +83,64 @@
 <body>
     <div class="container">
         <h2>To-Do List</h2>
-        <form method="post">
-            <input type="text" name="task" placeholder="New task" required>
+        <form id="taskForm">
+            <input type="text" id="taskInput" placeholder="New task" required>
             <button type="submit">Add Task</button>
         </form>
-        <ul>
-            {% for task in tasks %}
-                <li>
-                    {{ task }}
-                    <button class="delete-btn">X</button>
-                </li>
-            {% endfor %}
+        <ul id="taskList">
+            <!-- Tasks will be added here dynamically -->
         </ul>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const taskForm = document.getElementById("taskForm");
+            const taskInput = document.getElementById("taskInput");
+            const taskList = document.getElementById("taskList");
+
+            // Load tasks from localStorage
+            function loadTasks() {
+                const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+                taskList.innerHTML = "";
+                tasks.forEach((task, index) => {
+                    addTaskToDOM(task, index);
+                });
+            }
+
+            // Add task to DOM
+            function addTaskToDOM(task, index) {
+                const li = document.createElement("li");
+                li.innerHTML = `${task} <button class="delete-btn" data-index="${index}">X</button>`;
+                taskList.appendChild(li);
+            }
+
+            // Add task event
+            taskForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const task = taskInput.value.trim();
+                if (task !== "") {
+                    const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+                    tasks.push(task);
+                    localStorage.setItem("tasks", JSON.stringify(tasks));
+                    addTaskToDOM(task, tasks.length - 1);
+                    taskInput.value = "";
+                }
+            });
+
+            // Delete task event (Event Delegation)
+            taskList.addEventListener("click", function (event) {
+                if (event.target.classList.contains("delete-btn")) {
+                    const index = event.target.getAttribute("data-index");
+                    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+                    tasks.splice(index, 1);
+                    localStorage.setItem("tasks", JSON.stringify(tasks));
+                    loadTasks();
+                }
+            });
+
+            // Initial Load
+            loadTasks();
+        });
+    </script>
 </body>
 </html>
